@@ -8,8 +8,8 @@ Skrip ini digunakan untuk membandingkan daftar followers dan following di Instag
 
 1. **Termux**: Aplikasi terminal emulator untuk Android.
 2. **Python 3**: Versi Python yang diperlukan untuk menjalankan skrip.
-3. **Skrip Python**: File skrip `listnotfollow-html.py` yang digunakan untuk menghasilkan laporan HTML.
-## pakai script yang ini generate-report-follower-insta.py
+3. **Skrip Python**: File skrip `generate-report-follower-insta.py` yang digunakan untuk menghasilkan laporan HTML.
+## pakai script yang ini `generate-report-follower-insta.py`
 # Langkah-langkah Instalasi
 
 ## 1. Install Termux
