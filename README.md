@@ -85,6 +85,6 @@ Anda dapat membuka file HTML ini dengan browser untuk melihat daftar akun yang A
 
 # 8. Bantuan
 
-Jika Anda memerlukan bantuan lebih lanjut atau ingin bertanya sesuatu, silakan kunjungi [ChatGPT](https://chat.openai.com) untuk bantuan tambahan.
+Jika Anda memerlukan bantuan lebih lanjut atau ingin bertanya sesuatu, silakan kunjungi [ChatGPT](https://chat.com) untuk bantuan tambahan.
 
 Perhatikan tempat penyimpanan file / nama folder
