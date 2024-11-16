@@ -103,8 +103,7 @@ with open(output_path, 'w') as file:
             background-color: white;
             border: 1px solid #dbdbdb;
             border-radius: 8px;
-            display: inline-block;
-            vertical-align: top;
+            display: none;  /* Default: hide all tables */
         }}
 
         th, td {{
@@ -142,8 +141,28 @@ with open(output_path, 'w') as file:
             border: 1px solid #dbdbdb;
             border-radius: 4px;
         }}
+
+        button {{
+            font-size: 16px;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #00376b;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }}
+
+        button:hover {{
+            background-color: #005f8d;
+        }}
     </style>
     <script>
+        function toggleTable(tableId) {{
+            var table = document.getElementById(tableId);
+            var isVisible = table.style.display === 'block';
+            table.style.display = isVisible ? 'none' : 'block';
+        }}
+        
         function filterTable(inputId, tableId) {{
             var input, filter, table, tr, td, i, txtValue;
             input = document.getElementById(inputId);
@@ -171,10 +190,13 @@ with open(output_path, 'w') as file:
     <h2>Total Followers: {jumlah_followers}</h2>
     <h3>Jumlah Pengikuti Balik ({jumlah_good_people}) dan yang Tidak Mengikuti Balik ({jumlah_not_following_back})</h3>
 
-    <!-- Search bar untuk tabel Pengikut Balik -->
-    <input type="text" id="searchBar" onkeyup="filterTable('searchBar', 'goodPeopleTable')" placeholder="Cari nama...">
+    <!-- Tombol navigasi -->
+    <button onclick="toggleTable('goodPeopleTable')">Pengikut Balik</button>
+    <button onclick="toggleTable('notFollowingBackTable')">Following yang Tidak Mengikuti Balik</button>
+    <button onclick="toggleTable('notFollowedByMeTable')">Tidak Diikuti Tapi Mengikuti</button>
 
-    <!-- Tabel Pengikut Balik -->
+    <!-- Search bar dan Tabel Pengikut Balik -->
+    <input type="text" id="searchBar" onkeyup="filterTable('searchBar', 'goodPeopleTable')" placeholder="Cari nama...">
     <table id="goodPeopleTable">
         <thead>
             <tr>
@@ -191,9 +213,7 @@ with open(output_path, 'w') as file:
 
     # Tabel Following yang Tidak Mengikuti Balik
     file.write(f'''
-    <!-- Search bar untuk tabel Following yang Tidak Mengikuti Balik -->
     <input type="text" id="searchBar2" onkeyup="filterTable('searchBar2', 'notFollowingBackTable')" placeholder="Cari nama...">
-
     <table id="notFollowingBackTable">
         <thead>
             <tr>
@@ -210,9 +230,7 @@ with open(output_path, 'w') as file:
 
     # Tabel Tidak Diikuti Tapi Mengikuti
     file.write(f'''
-    <!-- Search bar untuk tabel Tidak Diikuti Tapi Mengikuti -->
     <input type="text" id="searchBar3" onkeyup="filterTable('searchBar3', 'notFollowedByMeTable')" placeholder="Cari nama...">
-
     <table id="notFollowedByMeTable">
         <thead>
             <tr>
