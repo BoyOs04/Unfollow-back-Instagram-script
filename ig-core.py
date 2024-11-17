@@ -1,7 +1,6 @@
 import json
 import os
 
-# Fungsi untuk meminta input file dengan validasi
 def get_valid_filepath(prompt):
     while True:
         path = input(prompt)
@@ -10,7 +9,6 @@ def get_valid_filepath(prompt):
         else:
             print(f"File '{path}' tidak ditemukan. Silakan coba lagi.")
 
-# Fungsi untuk meminta input direktori output dengan validasi
 def get_valid_directory(prompt, default_directory=None):
     while True:
         path = input(prompt)
@@ -24,214 +22,227 @@ def get_valid_directory(prompt, default_directory=None):
         else:
             print(f"Direktori '{path}' tidak ditemukan. Silakan coba lagi.")
 
-# Minta pengguna memasukkan path file followers dan following
-followers_file = get_valid_filepath("Masukkan path file followers (contoh: /storage/emulated/0/ig/f/followers_1.json): ")
-following_file = get_valid_filepath("Masukkan path file following (contoh: /storage/emulated/0/ig/f/following.json): ")
+def load_json_data(file_path):
+    with open(file_path) as f:
+        data = json.load(f)
+    return data
 
-# Buka file followers
-with open(followers_file) as f:
-    followers_data = json.load(f)
+def extract_usernames(data):
+    usernames = []
+    if isinstance(data, list):
+        for item in data:
+            if 'string_list_data' in item:
+                for entry in item['string_list_data']:
+                    usernames.append(entry['value'])
+            elif 'relationships_following' in item:
+                for entry in item['relationships_following']:
+                    for subentry in entry['string_list_data']:
+                        usernames.append(subentry['value'])
+    elif isinstance(data, dict):
+        if 'string_list_data' in data:
+            for item in data['string_list_data']:
+                usernames.append(item['value'])
+        elif 'relationships_following' in data:
+            for item in data['relationships_following']:
+                for subentry in item['string_list_data']:
+                    usernames.append(subentry['value'])
+    return usernames
 
-followers = []
-# Cek apakah followers_data adalah list atau dict
-if isinstance(followers_data, list):
-    for item in followers_data:
-        if 'string_list_data' in item:
-            for entry in item['string_list_data']:
-                followers.append(entry['value'])
-elif isinstance(followers_data, dict):
-    for item in followers_data['string_list_data']:
-        followers.append(item['value'])
+def generate_html(followers, following, output_path):
+    good_people = [i for i in following if i in followers]
+    not_following_back = [i for i in following if i not in good_people]
+    not_followed_by_me = [i for i in followers if i not in following]
 
-# Buka file following
-with open(following_file) as f:
-    following_data = json.load(f)
+    html_content = f'''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link data-default-icon="https://static.cdninstagram.com/rsrc.php/v3/yI/r/VsNE-OHk_8a.png" rel="icon" sizes="192x192" href="https://static.cdninstagram.com/rsrc.php/v3/yI/r/VsNE-OHk_8a.png" />
+        <title>Instagram Follower Analysis</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: wheat;
+                color: #333;
+                line-height: 1.6;
+                padding: 20px;
+                margin: 0;
+                font-size:1.5vh;
+            }}
+            .container {{
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 12px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }}
+            h1, h2 {{
+                color: #444;
+                text-align: center;
+                font-size:25px;
+            }}
+            .tabs {{
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+                background-color: wheat;
+                border-radius: 20vh;
+                margin: 20px;
+                padding:33px;
+            }}
+            .tab {{
+                padding: 10px 20px;
+                cursor: pointer;
+                background-color: #f0f0f0;
+                border: none;
+                outline: none;
+                transition: background-color 0.3s;
+                border-radius: 8px;
+                margin: 0 5px;
+            }}
+            .tab:hover, .tab.active {{
+                background-color: #ddd;
+            }}
+            .tab-content {{
+                display: none;
+            }}
+            .tab-content.active {{
+                display: block;
+            }}
+            input[type="text"] {{
+                width: 45%;
+                padding: 10px;
+                margin-bottom: 10px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                justify-content: center;
+            }}
+            .scroll-list {{
+                max-height: 400px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 10px;
+            }}
+            ul {{
+                list-style-type: decimal;
+                padding-left: 20px;
+                margin: 0;
+            }}
+            li {{
+                margin-bottom: 5px;
+            }}
+            a {{
+                color: #0066cc;
+                text-decoration: none;
+            }}
+            a:hover {{
+                text-decoration: underline;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Instagram Follower Analysis</h1>
+            <h2>Total Following: {len(following)} | Total Followers: {len(followers)}</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="openTab(event, 'mutualFollowers')">Mutual Followers</button>
+                <button class="tab" onclick="openTab(event, 'notFollowingBack')">Not Following Back</button>
+                <button class="tab" onclick="openTab(event, 'notFollowedByMe')">Not Followed By Me</button>
+            </div>
 
-following = []
-# Cek apakah following_data adalah list atau dict
-if isinstance(following_data, list):
-    for item in following_data:
-        if 'relationships_following' in item:
-            for entry in item['relationships_following']:
-                for subentry in entry['string_list_data']:
-                    following.append(subentry['value'])
-elif isinstance(following_data, dict):
-    for item in following_data['relationships_following']:
-        for subentry in item['string_list_data']:
-            following.append(subentry['value'])
+            <div id="mutualFollowers" class="tab-content active">
+                <input type="text" id="searchMutual" onkeyup="filterList('searchMutual', 'mutualList')" placeholder="Search mutual followers...">
+                <div class="scroll-list">
+                    <ul id="mutualList">
+                        {generate_list_items(good_people)}
+                    </ul>
+                </div>
+            </div>
 
-# Membandingkan followers dan following
-good_people = [i for i in following if i in followers]
-not_following_back = [i for i in following if i not in good_people]
-not_followed_by_me = [i for i in followers if i not in following]
+            <div id="notFollowingBack" class="tab-content">
+                <input type="text" id="searchNotFollowing" onkeyup="filterList('searchNotFollowing', 'notFollowingList')" placeholder="Search not following back...">
+                <div class="scroll-list">
+                    <ul id="notFollowingList">
+                        {generate_list_items(not_following_back)}
+                    </ul>
+                </div>
+            </div>
 
-# Hitung jumlah yang mengikuti balik dan tidak mengikuti balik
-jumlah_following = len(following)
-jumlah_followers = len(followers)
-jumlah_good_people = len(good_people)
-jumlah_not_following_back = len(not_following_back)
-jumlah_not_followed_by_me = len(not_followed_by_me)
+            <div id="notFollowedByMe" class="tab-content">
+                <input type="text" id="searchNotFollowed" onkeyup="filterList('searchNotFollowed', 'notFollowedList')" placeholder="Search not followed by me...">
+                <div class="scroll-list">
+                    <ul id="notFollowedList">
+                        {generate_list_items(not_followed_by_me)}
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-# Minta pengguna memasukkan lokasi dan nama file untuk menyimpan output
-script_dir = os.path.dirname(os.path.abspath(__file__))  # Mendapatkan direktori script
-output_dir = get_valid_directory("Masukkan lokasi untuk menyimpan file output (contoh: /storage/emulated/0/ig/) [Tekan Enter untuk menggunakan lokasi script]: ", default_directory=script_dir)
-output_filename = input("Masukkan nama file output (tanpa ekstensi): ")
+        <script>
+            function openTab(evt, tabName) {{
+                var i, tabContent, tabLinks;
+                tabContent = document.getElementsByClassName("tab-content");
+                for (i = 0; i < tabContent.length; i++) {{
+                    tabContent[i].style.display = "none";
+                }}
+                tabLinks = document.getElementsByClassName("tab");
+                for (i = 0; i < tabLinks.length; i++) {{
+                    tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+                }}
+                document.getElementById(tabName).style.display = "block";
+                evt.currentTarget.className += " active";
+            }}
 
-# Menyimpan hasilnya ke file HTML dengan tiga tabel dan CSS
-output_path = os.path.join(output_dir, output_filename + ".html")
-with open(output_path, 'w') as file:
-    file.write(f'''<html>
-<head>
-    <title>Instagram Results</title>
-    <style>
-        body {{
-            font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5deb3;  /* Wheat color */
-            color: #4e4e4e;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }}
-
-        h1, h2, h3 {{
-            font-weight: 600;
-            margin: 20px 0;
-        }}
-
-        table {{
-            width: 45%;
-            border-collapse: collapse;
-            margin: 20px auto;
-            background-color: white;
-            border: 1px solid #dbdbdb;
-            border-radius: 8px;
-            display: inline-block;
-            vertical-align: top;
-        }}
-
-        th, td {{
-            padding: 10px;
-            border-bottom: 1px solid #dbdbdb;
-            text-align: left;
-        }}
-
-        th {{
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }}
-
-        tr:hover {{
-            background-color: #f9f9f9;
-        }}
-
-        a {{
-            text-decoration: none;
-            color: #00376b;
-            font-weight: 500;
-        }}
-
-        a:hover {{
-            color: #0095f6;
-        }}
-
-        /* CSS untuk search bar */
-        #searchBar, #searchBar2, #searchBar3 {{
-            margin: 20px;
-            padding: 10px;
-            width: 80%;
-            max-width: 600px;
-            font-size: 16px;
-            border: 1px solid #dbdbdb;
-            border-radius: 4px;
-        }}
-    </style>
-    <script>
-        function filterTable(inputId, tableId) {{
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById(inputId);
-            filter = input.value.toUpperCase();
-            table = document.getElementById(tableId);
-            tr = table.getElementsByTagName("tr");
-
-            for (i = 1; i < tr.length; i++) {{
-                td = tr[i].getElementsByTagName("td")[1];
-                if (td) {{
-                    txtValue = td.textContent || td.innerText;
+            function filterList(inputId, listId) {{
+                var input, filter, ul, li, a, i, txtValue;
+                input = document.getElementById(inputId);
+                filter = input.value.toUpperCase();
+                ul = document.getElementById(listId);
+                li = ul.getElementsByTagName("li");
+                for (i = 0; i < li.length; i++) {{
+                    a = li[i].getElementsByTagName("a")[0];
+                    txtValue = a.textContent || a.innerText;
                     if (txtValue.toUpperCase().indexOf(filter) > -1) {{
-                        tr[i].style.display = "";
+                        li[i].style.display = "";
                     }} else {{
-                        tr[i].style.display = "none";
+                        li[i].style.display = "none";
                     }}
                 }}
             }}
-        }}
-    </script>
-</head>
-<body>
-    <h1>Results</h1>
-    <h2>Total Following: {jumlah_following}</h2>
-    <h2>Total Followers: {jumlah_followers}</h2>
-    <h3>Jumlah Pengikuti Balik ({jumlah_good_people}) dan yang Tidak Mengikuti Balik ({jumlah_not_following_back})</h3>
+        </script>
+    </body>
+    </html>
+    '''
 
-    <!-- Search bar untuk tabel Pengikut Balik -->
-    <input type="text" id="searchBar" onkeyup="filterTable('searchBar', 'goodPeopleTable')" placeholder="Cari nama...">
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
 
-    <!-- Tabel Pengikut Balik -->
-    <table id="goodPeopleTable">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Mengikuti Balik</th>
-            </tr>
-        </thead>
-        <tbody>''')
+def generate_list_items(users):
+    return '\n'.join([f'<li><a href="https://www.instagram.com/{user}" target="_blank">{user}</a></li>' for user in users])
 
-    for index, person in enumerate(good_people, start=1):
-        file.write(f'<tr><td>{index}</td><td><a href="https://www.instagram.com/{person}">{person}</a></td></tr>\n')
+def main():
+    followers_file = get_valid_filepath("Masukkan path file followers (contoh: /storage/emulated/0/ig/f/followers_1.json): ")
+    following_file = get_valid_filepath("Masukkan path file following (contoh: /storage/emulated/0/ig/f/following.json): ")
 
-    file.write('</tbody></table>')
+    followers_data = load_json_data(followers_file)
+    following_data = load_json_data(following_file)
 
-    # Tabel Following yang Tidak Mengikuti Balik
-    file.write(f'''
-    <!-- Search bar untuk tabel Following yang Tidak Mengikuti Balik -->
-    <input type="text" id="searchBar2" onkeyup="filterTable('searchBar2', 'notFollowingBackTable')" placeholder="Cari nama...">
+    followers = extract_usernames(followers_data)
+    following = extract_usernames(following_data)
 
-    <table id="notFollowingBackTable">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Following yang Tidak Mengikuti Balik</th>
-            </tr>
-        </thead>
-        <tbody>''')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = get_valid_directory("Masukkan lokasi untuk menyimpan file output (contoh: /storage/emulated/0/ig/) [Tekan Enter untuk menggunakan lokasi script]: ", default_directory=script_dir)
+    output_filename = input("Masukkan nama file output (tanpa ekstensi): ")
 
-    for index, person in enumerate(not_following_back, start=1):
-        file.write(f'<tr><td>{index}</td><td><a href="https://www.instagram.com/{person}">{person}</a></td></tr>\n')
+    output_path = os.path.join(output_dir, output_filename + ".html")
+    generate_html(followers, following, output_path)
 
-    file.write('</tbody></table>')
+    print(f"Output berhasil disimpan di: {output_path}")
 
-    # Tabel Tidak Diikuti Tapi Mengikuti
-    file.write(f'''
-    <!-- Search bar untuk tabel Tidak Diikuti Tapi Mengikuti -->
-    <input type="text" id="searchBar3" onkeyup="filterTable('searchBar3', 'notFollowedByMeTable')" placeholder="Cari nama...">
-
-    <table id="notFollowedByMeTable">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Tidak Diikuti Tapi Mengikuti</th>
-            </tr>
-        </thead>
-        <tbody>''')
-
-    for index, person in enumerate(not_followed_by_me, start=1):
-        file.write(f'<tr><td>{index}</td><td><a href="https://www.instagram.com/{person}">{person}</a></td></tr>\n')
-
-    file.write('</tbody></table>')
-
-    # Tambahkan output jumlah yang tidak diikuti balik
-    file.write(f'''
-    <h3>Jumlah Pengguna yang Tidak Diikuti Balik: {jumlah_not_followed_by_me}</h3>
-</body></html>''')
-
-print(f"Output berhasil disimpan di: {output_path}")
+if __name__ == "__main__":
+    main()
